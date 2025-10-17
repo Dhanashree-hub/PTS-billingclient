@@ -42,36 +42,7 @@ const Categories = () => {
   const { t } = useTranslation("categories");
   const { categories, addCategory, deleteCategory, products } = useBilling();
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const navigate = useNavigate();
-
-  const checkLimits = async () => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) return true;
-
-    const configRef = ref(database, `users/${user.uid}/businessConfig`);
-    const categoryRef = ref(database, `users/${user.uid}/categories`);
-
-    try {
-      const [configSnap, collectionSnap] = await Promise.all([
-        get(configRef),
-        get(categoryRef)
-      ]);
-
-      const limit = configSnap.val()?.categoryLimit || 5;
-      const currentCount = collectionSnap.exists() ? Object.keys(collectionSnap.val()).length : 0;
-
-      if (currentCount >= limit) {
-        setShowUpgradeDialog(true);
-        return false;
-      }
-      return true;
-    } catch (err) {
-      console.error("Error checking limits:", err);
-      return true;
-    }
-  };
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -133,9 +104,6 @@ const Categories = () => {
       });
       return;
     }
-
-    const canAdd = await checkLimits();
-    if (!canAdd) return;
 
     const categoryRef = ref(database, `users/${user.uid}/categories`);
     const newCategoryRef = push(categoryRef);
@@ -306,11 +274,6 @@ const Categories = () => {
           </Card>
         </div>
       </div>
-
-      <PlanModal
-        isOpen={showUpgradeDialog}
-        onClose={() => setShowUpgradeDialog(false)}
-      />
     </Layout>
   );
 };

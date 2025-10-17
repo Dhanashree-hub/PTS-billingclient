@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+   caret-color: transparent;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

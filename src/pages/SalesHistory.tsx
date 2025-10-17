@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger 
 } from "@/components/ui/dialog";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Search, FileText, Calendar, Download, Trash2 } from "lucide-react";
+import { Search, FileText, Calendar, Download, Trash2, User, Users, UserCheck, UserCog } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,12 +82,15 @@ const decryptSaleData = (sale: any) => {
         businessName: decryptField(sale.businessName || ''),
         tabName: sale.tabName ? decryptField(sale.tabName) : undefined,
         paymentMethod: decryptField(sale.paymentMethod || 'cash'),
+        priceType: decryptField(sale.priceType || 'regular'),
         items: sale.items?.map((item: any) => ({
             ...item,
             id: decryptField(item.id),
             name: decryptField(item.name),
             price: decryptNumberField(item.price.toString()),
-            quantity: item.quantity // Quantity is not sensitive
+            quantity: item.quantity, // Quantity is not sensitive
+            weight: item.weight ? decryptField(item.weight) : undefined,
+            code: item.code ? decryptField(item.code) : undefined
         })) || [],
         subtotal: decryptNumberField(sale.subtotal.toString()),
         tax: decryptNumberField(sale.tax?.toString() || '0'),
@@ -99,6 +102,28 @@ const decryptSaleData = (sale: any) => {
             email: sale.customerInfo.email ? decryptField(sale.customerInfo.email) : undefined
         } : undefined
     };
+};
+
+// Price type icon mapping
+const getPriceTypeIcon = (priceType: string) => {
+    switch (priceType) {
+        case 'wholesaler': return <Users className="h-4 w-4" />;
+        case 'agent': return <UserCheck className="h-4 w-4" />;
+        case 'agent1': return <UserCog className="h-4 w-4" />;
+        case 'regular':
+        default: return <User className="h-4 w-4" />;
+    }
+};
+
+// Price type display name
+const getPriceTypeDisplayName = (priceType: string, t: any) => {
+    switch (priceType) {
+        case 'wholesaler': return t('wholesalerPrice');
+        case 'agent': return t('agentPrice');
+        case 'agent1': return t('agent1Price');
+        case 'regular':
+        default: return t('regularPrice');
+    }
 };
 
 const SalesHistory = () => {
@@ -159,7 +184,8 @@ const SalesHistory = () => {
             if (!sale) return false;
             const matchesSearch = sale.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                 sale.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                sale.customerPhone?.toLowerCase().includes(searchQuery.toLowerCase());
+                                sale.customerPhone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                sale.priceType?.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesDate = dateFilter ? sale.date?.startsWith(dateFilter) : true;
             return matchesSearch && matchesDate;
         });
@@ -222,6 +248,7 @@ const SalesHistory = () => {
             [t('date')]: new Date(sale.date).toLocaleString(),
             [t('customerName')]: sale.customerName || t('na'),
             [t('customerPhone')]: sale.customerPhone || t('na'),
+            [t('priceType')]: getPriceTypeDisplayName(sale.priceType || 'regular', t),
             [t('itemsCount')]: sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0),
             [t('subtotal')]: sale.subtotal,
             [t('discount')]: sale.discountAmount || 0,
@@ -346,6 +373,7 @@ const SalesHistory = () => {
                                     <TableHead>{t('saleId')}</TableHead>
                                     <TableHead>{t('customer')}</TableHead>
                                     <TableHead>{t('phone')}</TableHead>
+                                    <TableHead>{t('priceType')}</TableHead>
                                     <TableHead>{t('items')}</TableHead>
                                     <TableHead>{t('total')}</TableHead>
                                     <TableHead>{t('discount')}</TableHead>
@@ -366,6 +394,12 @@ const SalesHistory = () => {
                                             <TableCell className="font-medium">{sale.id}</TableCell>
                                             <TableCell>{sale.customerName || t('na')}</TableCell>
                                             <TableCell>{sale.customerPhone || t('na')}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-1 capitalize">
+                                                    {getPriceTypeIcon(sale.priceType || 'regular')}
+                                                    {sale.priceType === 'agent1' ? 'Agent 1' : sale.priceType || 'regular'}
+                                                </div>
+                                            </TableCell>
                                             <TableCell>
                                                 {sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0)} {t('items')}
                                             </TableCell>
@@ -405,17 +439,28 @@ const SalesHistory = () => {
                                                                         {new Date(sale.date).toLocaleString()}
                                                                     </span>
                                                                 </div>
-                                                                <div className="flex justify-between text-sm">
-                                                                    <span className="text-billing-secondary">{t('customerName')}:</span>
-                                                                    <span className="font-medium">{sale.customerName || t('na')}</span>
-                                                                </div>
-                                                                <div className="flex justify-between text-sm">
-                                                                    <span className="text-billing-secondary">{t('customerPhone')}:</span>
-                                                                    <span className="font-medium">{sale.customerPhone || t('na')}</span>
-                                                                </div>
+                                                                {sale.customerName && (
+                                                                    <div className="flex justify-between text-sm">
+                                                                        <span className="text-billing-secondary">{t('customerName')}:</span>
+                                                                        <span className="font-medium">{sale.customerName}</span>
+                                                                    </div>
+                                                                )}
+                                                                {sale.customerPhone && (
+                                                                    <div className="flex justify-between text-sm">
+                                                                        <span className="text-billing-secondary">{t('customerPhone')}:</span>
+                                                                        <span className="font-medium">{sale.customerPhone}</span>
+                                                                    </div>
+                                                                )}
                                                                 <div className="flex justify-between text-sm">
                                                                     <span className="text-billing-secondary">{t('paymentMethod')}:</span>
                                                                     <span className="font-medium capitalize">{sale.paymentMethod}</span>
+                                                                </div>
+                                                                <div className="flex justify-between text-sm">
+                                                                    <span className="text-billing-secondary">{t('priceType')}:</span>
+                                                                    <span className="font-medium capitalize flex items-center gap-1">
+                                                                        {getPriceTypeIcon(sale.priceType || 'regular')}
+                                                                        {sale.priceType === 'agent1' ? 'Agent 1' : sale.priceType || 'regular'}
+                                                                    </span>
                                                                 </div>
                                                                 
                                                                 <div className="border-t pt-4">
@@ -423,10 +468,14 @@ const SalesHistory = () => {
                                                                     <div className="space-y-2">
                                                                         {sale.items?.map((item, index) => (
                                                                             <div key={index} className="flex justify-between text-sm">
-                                                                                <span>
-                                                                                    {item.name} x {item.quantity}
+                                                                                <span className="flex-1">
+                                                                                    {item.name}
+                                                                                    {item.code && ` (${item.code})`}
+                                                                                    {item.weight && ` (${item.weight})`}
                                                                                 </span>
-                                                                                <span>{formatCurrency((item.price || 0) * (item.quantity || 0))}</span>
+                                                                                <span className="ml-2">
+                                                                                    {item.quantity} x {formatCurrency(item.price || 0)} = {formatCurrency((item.price || 0) * (item.quantity || 0))}
+                                                                                </span>
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -470,7 +519,7 @@ const SalesHistory = () => {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9} className="text-center py-8 text-billing-secondary">
+                                        <TableCell colSpan={10} className="text-center py-8 text-billing-secondary">
                                             {searchQuery || dateFilter ? t('noSalesMatch') : t('noSalesFound')}
                                         </TableCell>
                                     </TableRow>
@@ -510,17 +559,28 @@ const SalesHistory = () => {
                                                                     {new Date(sale.date).toLocaleString()}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex justify-between text-sm">
-                                                                <span className="text-billing-secondary">{t('customerName')}:</span>
-                                                                <span className="font-medium">{sale.customerName || t('na')}</span>
-                                                            </div>
-                                                            <div className="flex justify-between text-sm">
-                                                                <span className="text-billing-secondary">{t('customerPhone')}:</span>
-                                                                <span className="font-medium">{sale.customerPhone || t('na')}</span>
-                                                            </div>
+                                                            {sale.customerName && (
+                                                                <div className="flex justify-between text-sm">
+                                                                    <span className="text-billing-secondary">{t('customerName')}:</span>
+                                                                    <span className="font-medium">{sale.customerName}</span>
+                                                                </div>
+                                                            )}
+                                                            {sale.customerPhone && (
+                                                                <div className="flex justify-between text-sm">
+                                                                    <span className="text-billing-secondary">{t('customerPhone')}:</span>
+                                                                    <span className="font-medium">{sale.customerPhone}</span>
+                                                                </div>
+                                                            )}
                                                             <div className="flex justify-between text-sm">
                                                                 <span className="text-billing-secondary">{t('paymentMethod')}:</span>
                                                                 <span className="font-medium capitalize">{sale.paymentMethod}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-sm">
+                                                                <span className="text-billing-secondary">{t('priceType')}:</span>
+                                                                <span className="font-medium capitalize flex items-center gap-1">
+                                                                    {getPriceTypeIcon(sale.priceType || 'regular')}
+                                                                    {sale.priceType === 'agent1' ? 'Agent 1' : sale.priceType || 'regular'}
+                                                                </span>
                                                             </div>
                                                             
                                                             <div className="border-t pt-4">
@@ -528,10 +588,14 @@ const SalesHistory = () => {
                                                                 <div className="space-y-2">
                                                                     {sale.items?.map((item, index) => (
                                                                         <div key={index} className="flex justify-between text-sm">
-                                                                            <span>
-                                                                                {item.name} x {item.quantity}
+                                                                            <span className="flex-1">
+                                                                                {item.name}
+                                                                                {item.code && ` (${item.code})`}
+                                                                                {item.weight && ` (${item.weight})`}
                                                                             </span>
-                                                                            <span>{formatCurrency((item.price || 0) * (item.quantity || 0))}</span>
+                                                                            <span className="ml-2">
+                                                                                {item.quantity} x {formatCurrency(item.price || 0)} = {formatCurrency((item.price || 0) * (item.quantity || 0))}
+                                                                            </span>
                                                                         </div>
                                                                     ))}
                                                                 </div>
@@ -581,11 +645,18 @@ const SalesHistory = () => {
                                                 <div>{sale.customerInfo?.phone || t('na')}</div>
                                             </div>
                                             <div>
-                                                <div className="text-billing-secondary">{t('items')}</div>
-                                                <div>{sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0)}</div>
+                                                <div className="text-billing-secondary">{t('priceType')}</div>
+                                                <div className="flex items-center gap-1 capitalize">
+                                                    {getPriceTypeIcon(sale.priceType || 'regular')}
+                                                    {sale.priceType === 'agent1' ? 'Agent 1' : sale.priceType || 'regular'}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-3 text-sm mt-2 gap-2">
+                                            <div>
+                                                <div className="text-billing-secondary">{t('items')}</div>
+                                                <div>{sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0)}</div>
+                                            </div>
                                             <div>
                                                 <div className="text-billing-secondary">{t('discount')}</div>
                                                 <div className="text-red-500">-{formatCurrency(sale.discountAmount || 0)}</div>
@@ -594,6 +665,8 @@ const SalesHistory = () => {
                                                 <div className="text-billing-secondary">{t('payment')}</div>
                                                 <div className="capitalize">{sale.paymentMethod}</div>
                                             </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 text-sm mt-2 gap-2">
                                             <div>
                                                 <div className="text-billing-secondary">{t('total')}</div>
                                                 <div className="font-bold text-billing-primary">{formatCurrency(sale.grandTotal)}</div>

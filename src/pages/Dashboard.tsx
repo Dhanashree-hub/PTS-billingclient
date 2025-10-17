@@ -11,7 +11,11 @@ import {
   Store,
   ShoppingBag,
   Utensils,
-  ChevronDown
+  ChevronDown,
+  User,
+  Users,
+  UserCheck,
+  UserCog
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -69,6 +73,7 @@ interface BestSellingProduct {
   name: string;
   count: number;
   category?: string;
+  revenue: number;
 }
 
 const Dashboard = () => {
@@ -79,6 +84,7 @@ const Dashboard = () => {
   const [timePeriod, setTimePeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [bestSellingProducts, setBestSellingProducts] = useState<BestSellingProduct[]>([]);
+  const [selectedPriceType, setSelectedPriceType] = useState<string>('regular');
 
   // Decrypt business config
   const decryptedBusinessConfig = useMemo(() => businessConfig ? {
@@ -94,7 +100,7 @@ const Dashboard = () => {
     active: businessConfig.active || false
   } : null, [businessConfig]);
 
-  // Decrypt products
+  // Decrypt products with multiple price types
   const decryptedProducts = useMemo(() => {
     return products.map(product => ({
       ...product,
@@ -102,8 +108,15 @@ const Dashboard = () => {
       name: decryptField(product.name),
       category: decryptField(product.category),
       description: decryptField(product.description || ''),
-      price: decryptNumberField(product.price.toString()),
-      imageUrl: decryptField(product.imageUrl || '')
+      price: decryptNumberField(product.price?.toString() || '0'),
+      regularPrice: decryptNumberField(product.regularPrice || product.price?.toString() || '0'),
+      wholesalerPrice: decryptNumberField(product.wholesalerPrice || product.price?.toString() || '0'),
+      agentPrice: decryptNumberField(product.agentPrice || product.price?.toString() || '0'),
+      agent1Price: decryptNumberField(product.agent1Price || product.price?.toString() || '0'),
+      quantity: product.quantity ? decryptNumberField(product.quantity.toString()) : 0,
+      weight: product.weight ? decryptField(product.weight) : undefined,
+      imageUrl: decryptField(product.imageUrl || ''),
+      useSamePrice: product.useSamePrice !== undefined ? product.useSamePrice : true
     }));
   }, [products]);
 
@@ -136,12 +149,13 @@ const Dashboard = () => {
       })) || [],
       businessName: decryptField(sale.businessName || ''),
       tabName: sale.tabName ? decryptField(sale.tabName) : undefined,
-      paymentMethod: decryptField(sale.paymentMethod || 'cash')
+      paymentMethod: decryptField(sale.paymentMethod || 'cash'),
+      priceType: decryptField(sale.priceType || 'regular')
     }));
   }, [sales]);
 
   const validSales = useMemo(() => decryptedSales.filter((sale) => !!sale?.date && typeof sale.grandTotal === 'number'), [decryptedSales]);
-  const validProducts = useMemo(() => decryptedProducts.filter((product) => !!product?.id && typeof product.price === 'number'), [decryptedProducts]);
+  const validProducts = useMemo(() => decryptedProducts.filter((product) => !!product?.id), [decryptedProducts]);
 
   // Calculate dashboard statistics
   const totalSales = validSales.length;
@@ -201,30 +215,50 @@ const Dashboard = () => {
     return validSales.filter(sale => new Date(sale.date) >= startDate);
   }, [timePeriod, validSales]);
 
+  // Get product price based on selected price type
+  const getProductPrice = useCallback((product: any) => {
+    switch (selectedPriceType) {
+      case 'wholesaler':
+        return product.wholesalerPrice || product.price;
+      case 'agent':
+        return product.agentPrice || product.price;
+      case 'agent1':
+        return product.agent1Price || product.price;
+      case 'regular':
+      default:
+        return product.regularPrice || product.price;
+    }
+  }, [selectedPriceType]);
+
   // Get best selling products
   const getBestSellingProducts = useCallback(() => {
     const filteredSales = getFilteredSales();
-    const productSalesMap = new Map<string, { count: number; name: string; category?: string }>();
+    const productSalesMap = new Map<string, { count: number; name: string; category?: string; revenue: number }>();
 
     filteredSales.forEach(sale => {
       sale.items?.forEach(item => {
         if (!item.id || !item.quantity) return;
         
         const productName = item.name || t('unknown_product');
+        const product = validProducts.find(p => p.id === item.id);
         
         if (selectedCategory !== 'all') {
-          const product = validProducts.find(p => p.id === item.id);
           if (product?.category !== selectedCategory) return;
         }
         
         const existing = productSalesMap.get(item.id);
+        const itemPrice = product ? getProductPrice(product) : 0;
+        const itemRevenue = itemPrice * item.quantity;
+        
         if (existing) {
           existing.count += item.quantity;
+          existing.revenue += itemRevenue;
         } else {
           productSalesMap.set(item.id, {
             count: item.quantity,
             name: productName,
-            category: validProducts.find(p => p.id === item.id)?.category
+            category: product?.category,
+            revenue: itemRevenue
           });
         }
       });
@@ -235,11 +269,12 @@ const Dashboard = () => {
         id,
         name: data.name,
         count: data.count,
-        category: data.category || t('uncategorized')
+        category: data.category || t('uncategorized'),
+        revenue: data.revenue
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-  }, [getFilteredSales, selectedCategory, validProducts, t]);
+  }, [getFilteredSales, selectedCategory, validProducts, t, getProductPrice]);
 
   useEffect(() => {
     setBestSellingProducts(getBestSellingProducts());
@@ -247,26 +282,31 @@ const Dashboard = () => {
 
   // Category distribution
   const categorySales = useMemo(() => {
-    const salesMap: Record<string, number> = {};
+    const salesMap: Record<string, { count: number; revenue: number }> = {};
     getFilteredSales().forEach(sale => {
       sale.items?.forEach(item => {
         const product = validProducts.find(p => p.id === item.id);
         if (product?.category) {
-          salesMap[product.category] = (salesMap[product.category] || 0) + (item.quantity || 0);
+          if (!salesMap[product.category]) {
+            salesMap[product.category] = { count: 0, revenue: 0 };
+          }
+          salesMap[product.category].count += (item.quantity || 0);
+          salesMap[product.category].revenue += (getProductPrice(product) * (item.quantity || 0));
         }
       });
     });
     return salesMap;
-  }, [getFilteredSales, validProducts]);
+  }, [getFilteredSales, validProducts, getProductPrice]);
 
-  const categoryData = useMemo(() => Object.entries(categorySales).map(([id, count]) => {
+  const categoryData = useMemo(() => Object.entries(categorySales).map(([id, data]) => {
     const category = decryptedCategories.find(c => c.id === id);
     return {
       id,
       name: category?.name || t('uncategorized'),
-      value: count
+      count: data.count,
+      revenue: data.revenue
     };
-  }).sort((a, b) => b.value - a.value), [categorySales, decryptedCategories, t]);
+  }).sort((a, b) => b.revenue - a.revenue), [categorySales, decryptedCategories, t]);
 
   // Business type specific animations
   const getBusinessAnimation = useCallback(() => {
@@ -281,42 +321,36 @@ const Dashboard = () => {
     }
   }, [decryptedBusinessConfig]);
 
+  // Price type icon mapping
+  const getPriceTypeIcon = useCallback((priceType: string) => {
+    switch (priceType) {
+      case 'wholesaler': return <Users className="h-4 w-4" />;
+      case 'agent': return <UserCheck className="h-4 w-4" />;
+      case 'agent1': return <UserCog className="h-4 w-4" />;
+      case 'regular':
+      default: return <User className="h-4 w-4" />;
+    }
+  }, []);
+
   const handleLogout = useCallback(() => {
     auth.signOut().then(() => {
       navigate("/login");
     });
   }, [navigate]);
 
-  // Continuous status checking
-  // useEffect(() => {
-  //   const user = auth.currentUser;
-  //   if (!user) return;
-
-  //   const userRef = ref(database, `users/${user.uid}/businessConfig/active`);
-  //   const unsubscribe = onValue(userRef, (snapshot) => {
-  //     const isActive = snapshot.exists() ? snapshot.val() : false;
-
-  //     if (!isActive) {
-  //       auth.signOut().then(() => {
-  //         navigate("/login", {
-  //           state: { accountDisabled: true },
-  //           replace: true
-  //         });
-  //         toast({
-  //           title: t('account_disabled'),
-  //           description: t('account_disabled_message'),
-  //           variant: "destructive",
-  //         });
-  //       });
-  //     }
-  //   });
-
-  //   return () => unsubscribe();
-  // }, [navigate, t]);
-
   // Calculate daily average
   const uniqueSaleDates = useMemo(() => new Set(validSales.map(sale => sale.date.split('T')[0])), [validSales]);
   const dailyAverage = useMemo(() => uniqueSaleDates.size > 0 ? totalRevenue / uniqueSaleDates.size : 0, [uniqueSaleDates, totalRevenue]);
+
+  // Price type distribution
+  const priceTypeDistribution = useMemo(() => {
+    const distribution: Record<string, number> = {};
+    validSales.forEach(sale => {
+      const priceType = sale.priceType || 'regular';
+      distribution[priceType] = (distribution[priceType] || 0) + 1;
+    });
+    return distribution;
+  }, [validSales]);
 
   return (
     <Layout>
@@ -339,6 +373,31 @@ const Dashboard = () => {
       </div>
 
       <StockAlerts />
+
+      {/* Price Type Selector */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-medium text-billing-secondary dark:text-gray-300">
+            {t('viewing_prices_as')}:
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {['regular', 'wholesaler', 'agent', 'agent1'].map((priceType) => (
+            <Button
+              key={priceType}
+              variant={selectedPriceType === priceType ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedPriceType(priceType)}
+              className="flex items-center gap-2"
+            >
+              {getPriceTypeIcon(priceType)}
+              <span className="capitalize">
+                {priceType === 'agent1' ? 'Agent 1' : priceType}
+              </span>
+            </Button>
+          ))}
+        </div>
+      </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
@@ -474,6 +533,30 @@ const Dashboard = () => {
                 </div>
               </div>
 
+              <div>
+                <h3 className="text-sm font-medium mb-2 dark:text-gray-300">{t('price_types')}</h3>
+                <div className="space-y-2">
+                  {Object.entries(priceTypeDistribution).map(([priceType, count]) => {
+                    const percentage = totalSales > 0 ? (count / totalSales) * 100 : 0;
+                    return (
+                      <div key={priceType} className="flex items-center">
+                        <div className="w-24 text-sm capitalize flex items-center gap-1">
+                          {getPriceTypeIcon(priceType)}
+                          {priceType === 'agent1' ? 'Agent 1' : priceType}
+                        </div>
+                        <div className="flex-1 mx-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-billing-success rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <div className="w-20 text-right text-sm">{percentage.toFixed(1)}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">
                   <h3 className="text-sm font-medium mb-1 dark:text-gray-300">{t('daily_average')}</h3>
@@ -570,9 +653,14 @@ const Dashboard = () => {
                         </span>
                       </div>
                     </div>
-                    <span className="text-billing-secondary dark:text-gray-300">
-                      {product.count} {t('sold')}
-                    </span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-billing-secondary dark:text-gray-300 text-sm">
+                        {product.count} {t('sold')}
+                      </span>
+                      <span className="text-billing-primary dark:text-blue-400 text-xs">
+                        {formatCurrency(product.revenue)}
+                      </span>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -596,6 +684,7 @@ const Dashboard = () => {
                   <tr className="text-left border-b border-gray-200 dark:border-gray-700">
                     <th className="p-3 text-xs md:text-sm">{t('date')}</th>
                     <th className="p-3 text-xs md:text-sm">{t('items')}</th>
+                    <th className="p-3 text-xs md:text-sm">{t('price_type')}</th>
                     <th className="p-3 text-xs md:text-sm">{t('customer')}</th>
                     <th className="p-3 text-xs md:text-sm">{t('total')}</th>
                   </tr>
@@ -610,6 +699,12 @@ const Dashboard = () => {
                         <td className="p-3 text-xs md:text-sm">
                           {(sale.items || []).reduce((sum, item) => sum + (item?.quantity || 0), 0)} {t('items')}
                         </td>
+                        <td className="p-3 text-xs md:text-sm capitalize">
+                          <div className="flex items-center gap-1">
+                            {getPriceTypeIcon(sale.priceType || 'regular')}
+                            {sale.priceType === 'agent1' ? 'Agent 1' : sale.priceType || 'regular'}
+                          </div>
+                        </td>
                         <td className="p-3 text-xs md:text-sm">
                           {sale.customer?.name || t('walk_in')}
                         </td>
@@ -620,7 +715,7 @@ const Dashboard = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="p-3 text-center text-billing-secondary dark:text-gray-300">
+                      <td colSpan={5} className="p-3 text-center text-billing-secondary dark:text-gray-300">
                         {t('no_sales_records')}
                       </td>
                     </tr>

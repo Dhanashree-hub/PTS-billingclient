@@ -39,11 +39,29 @@ const decrypt = (cipherText: string) => {
 };
 
 interface FormState {
+  code: string;
   name: string;
-  price: string;
   category: string;
+  subcategory: string;
+  weight: string;
+  quantity: string;
   imageUrl: string;
+  // Price fields for different customer types
+  regularPrice: string;
+  wholesalerPrice: string;
+  agentPrice: string;
+  agent1Price: string;
+  useSamePrice: boolean;
 }
+
+const weightOptions = [
+  { value: "200ml", label: "200ml" },
+  { value: "500ml", label: "500ml" },
+  { value: "1L", label: "1L" },
+  { value: "200g", label: "200g" },
+  { value: "500g", label: "500g" },
+  { value: "1kg", label: "1kg" },
+];
 
 const ProductForm = () => {
   const { t } = useTranslation("productform");
@@ -53,10 +71,18 @@ const ProductForm = () => {
   const isEditing = !!productId;
 
   const [formState, setFormState] = useState<FormState>({
+    code: "",
     name: "",
-    price: "",
     category: "",
+    subcategory: "",
+    weight: "",
+    quantity: "0",
     imageUrl: "",
+    regularPrice: "",
+    wholesalerPrice: "",
+    agentPrice: "",
+    agent1Price: "",
+    useSamePrice: true,
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -64,16 +90,25 @@ const ProductForm = () => {
   const [productLimit, setProductLimit] = useState<number | null>(null);
   const [currentProductCount, setCurrentProductCount] = useState(0);
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isEditing) {
       const product = products.find((p) => p.id === productId);
       if (product) {
         setFormState({
+          code: product.code ? decrypt(product.code) : "",
           name: decrypt(product.name),
-          price: decrypt(product.price),
-          category: decrypt(product.category),
+          category: product.category,
+          subcategory: product.subcategory ? decrypt(product.subcategory) : "",
+          weight: product.weight ? decrypt(product.weight) : "",
+          quantity: product.quantity ? decrypt(product.quantity) : "0",
           imageUrl: product.imageUrl ? decrypt(product.imageUrl) : "",
+          regularPrice: product.regularPrice ? decrypt(product.regularPrice) : "",
+          wholesalerPrice: product.wholesalerPrice ? decrypt(product.wholesalerPrice) : "",
+          agentPrice: product.agentPrice ? decrypt(product.agentPrice) : "",
+          agent1Price: product.agent1Price ? decrypt(product.agent1Price) : "",
+          useSamePrice: product.useSamePrice !== undefined ? product.useSamePrice : true,
         });
       } else {
         toast({
@@ -109,9 +144,61 @@ const ProductForm = () => {
     checkProductLimits();
   }, []);
 
+  const checkDuplicateCode = (code: string) => {
+    const trimmedCode = code.trim();
+    if (!trimmedCode) return false;
+    
+    return products.some(
+      p => p.code && decrypt(p.code) === trimmedCode && (!isEditing || p.id !== productId)
+    );
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
+
+    // If useSamePrice is enabled and regular price changes, update all prices
+    if (name === "regularPrice" && formState.useSamePrice) {
+      setFormState((prev) => ({
+        ...prev,
+        wholesalerPrice: value,
+        agentPrice: value,
+        agent1Price: value,
+      }));
+    }
+
+    // Check for duplicate code when code field changes
+    if (name === "code") {
+      if (checkDuplicateCode(value)) {
+        setCodeError(t("This product code already exists. Please use a different code."));
+      } else {
+        setCodeError(null);
+      }
+    }
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    
+    if (name === "useSamePrice") {
+      setFormState((prev) => {
+        if (checked) {
+          // If enabling same price for all, copy regular price to all fields
+          return {
+            ...prev,
+            useSamePrice: checked,
+            wholesalerPrice: prev.regularPrice,
+            agentPrice: prev.regularPrice,
+            agent1Price: prev.regularPrice,
+          };
+        } else {
+          return {
+            ...prev,
+            useSamePrice: checked,
+          };
+        }
+      });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,9 +235,22 @@ const ProductForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { name, price, category, imageUrl } = formState;
+    const { 
+      code, 
+      name, 
+      category, 
+      subcategory, 
+      weight, 
+      quantity, 
+      imageUrl,
+      regularPrice,
+      wholesalerPrice,
+      agentPrice,
+      agent1Price,
+      useSamePrice
+    } = formState;
 
-    if (!name.trim() || !price || !category) {
+    if (!code.trim() || !name.trim() || !regularPrice || !category) {
       toast({
         title: t("error"),
         description: t("fillAll"),
@@ -159,11 +259,49 @@ const ProductForm = () => {
       return;
     }
 
-    const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+    const parsedRegularPrice = parseFloat(regularPrice);
+    if (isNaN(parsedRegularPrice) || parsedRegularPrice <= 0) {
       toast({
         title: t("error"),
         description: t("validPrice"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate other prices if not using same price for all
+    if (!useSamePrice) {
+      const parsedWholesalerPrice = parseFloat(wholesalerPrice);
+      const parsedAgentPrice = parseFloat(agentPrice);
+      const parsedAgent1Price = parseFloat(agent1Price);
+      
+      if (isNaN(parsedWholesalerPrice) || parsedWholesalerPrice <= 0 ||
+          isNaN(parsedAgentPrice) || parsedAgentPrice <= 0 ||
+          isNaN(parsedAgent1Price) || parsedAgent1Price <= 0) {
+        toast({
+          title: t("error"),
+          description: t("validPrice"),
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const parsedQuantity = parseInt(quantity);
+    if (isNaN(parsedQuantity) || parsedQuantity < 0) {
+      toast({
+        title: t("error"),
+        description: t("validQuantity"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if code already exists
+    if (checkDuplicateCode(code)) {
+      toast({
+        title: t("error"),
+        description: t("This product code already exists. Please use a different code."),
         variant: "destructive",
       });
       return;
@@ -195,10 +333,25 @@ const ProductForm = () => {
       }
 
       const productData = {
+        code: encrypt(code.trim()),
         name: encrypt(name.trim()),
-        price: encrypt(parsedPrice.toString()),
-        category: encrypt(category),
-        imageUrl: encrypt(finalImageUrl),
+        price: encrypt(parsedRegularPrice.toString()), // Use regular price as default price
+        category: category,
+        subcategory: subcategory ? encrypt(subcategory) : "",
+        weight: weight ? encrypt(weight) : "",
+        quantity: encrypt(parsedQuantity.toString()),
+        imageUrl: finalImageUrl ? encrypt(finalImageUrl) : "",
+        regularPrice: encrypt(parsedRegularPrice.toString()),
+        wholesalerPrice: useSamePrice 
+          ? encrypt(parsedRegularPrice.toString()) 
+          : encrypt(wholesalerPrice),
+        agentPrice: useSamePrice 
+          ? encrypt(parsedRegularPrice.toString()) 
+          : encrypt(agentPrice),
+        agent1Price: useSamePrice 
+          ? encrypt(parsedRegularPrice.toString()) 
+          : encrypt(agent1Price),
+        useSamePrice: useSamePrice,
         createdAt: new Date().toISOString(),
       };
 
@@ -292,6 +445,24 @@ const ProductForm = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
+                <Label htmlFor="code">{t("productCode")}</Label>
+                <Input
+                  id="code"
+                  name="code"
+                  placeholder={t("productCodePlaceholder")}
+                  value={formState.code}
+                  onChange={handleChange}
+                  required
+                  className={codeError ? "border-destructive" : ""}
+                />
+                {codeError && (
+                  <p className="text-sm font-medium text-destructive">
+                    {t("This product code already exists. Please use a different code.")}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="name">{t("productName")}</Label>
                 <Input
                   id="name"
@@ -304,17 +475,93 @@ const ProductForm = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="price">{t("productPrice")}</Label>
+                <Label htmlFor="regularPrice">{t("regularPrice")}</Label>
                 <Input
-                  id="price"
-                  name="price"
+                  id="regularPrice"
+                  name="regularPrice"
                   type="number"
                   step="0.01"
                   min="0"
                   placeholder="0.00"
-                  value={formState.price}
+                  value={formState.regularPrice}
                   onChange={handleChange}
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="useSamePrice" className="flex items-center">
+                  <input
+                    id="useSamePrice"
+                    name="useSamePrice"
+                    type="checkbox"
+                    checked={formState.useSamePrice}
+                    onChange={handleCheckboxChange}
+                    className="mr-2"
+                  />
+                  {t("useSamePriceForAll")}
+                </Label>
+              </div>
+
+              {!formState.useSamePrice && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="wholesalerPrice">{t("wholesalerPrice")}</Label>
+                    <Input
+                      id="wholesalerPrice"
+                      name="wholesalerPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={formState.wholesalerPrice}
+                      onChange={handleChange}
+                      required={!formState.useSamePrice}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="agentPrice">{t("agentPrice")}</Label>
+                    <Input
+                      id="agentPrice"
+                      name="agentPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={formState.agentPrice}
+                      onChange={handleChange}
+                      required={!formState.useSamePrice}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="agent1Price">{t("agent1Price")}</Label>
+                    <Input
+                      id="agent1Price"
+                      name="agent1Price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={formState.agent1Price}
+                      onChange={handleChange}
+                      required={!formState.useSamePrice}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">{t("productQuantity")}</Label>
+                <Input
+                  id="quantity"
+                  name="quantity"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={formState.quantity}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -333,6 +580,27 @@ const ProductForm = () => {
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {decrypt(cat.name)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="weight">{t("productWeight")}</Label>
+                <Select
+                  value={formState.weight}
+                  onValueChange={(value) =>
+                    setFormState((prev) => ({ ...prev, weight: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("selectWeight")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {weightOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -385,7 +653,10 @@ const ProductForm = () => {
               >
                 {t("cancel")}
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || (codeError !== null && !isEditing)}
+              >
                 {isSubmitting
                   ? t("saving")
                   : isEditing

@@ -6,6 +6,8 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 // Types
 export interface Product {
+  quantity: any;
+  code: boolean;
   id: string;
   name: string;
   price: number;
