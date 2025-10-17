@@ -1,0 +1,350 @@
+/* DarpatrakKendraPage.css */
+
+/* Dashboard Layout Styles */
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.dk-page-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.dk-back-btn {
+
+  background-color: orangered;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  width: 30px;
+  border-radius: 5px;
+
+}
+
+.dk-back-icon {
+color: black;
+  font-size: 20px;
+}
+
+.dk-page-title {
+  color: #ff9800;  /* Orange text color */
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid #34495e;
+  text-align: center;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 20px 0;
+}
+
+.menu-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.menu-item:hover {
+  background-color: #34495e;
+}
+
+.menu-item.active {
+  background-color: #3498db;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #34495e;
+}
+
+.contact-info p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #bdc3c7;
+}
+
+/* Main Content Styles */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #ecf0f1;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-left h1 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.header-right .user-info {
+  background-color: #3498db;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 4px;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Existing Darpatrak Kendra Styles */
+.dk-outer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.dk-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.dk-header-row {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.dk-header-inputs {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.dk-header-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.dk-header-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 120px;
+}
+
+.dk-btn-save, .dk-btn-new {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.dk-btn-save {
+  background-color: #3498db;
+  color: white;
+}
+
+.dk-btn-new {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.dk-form-section {
+  margin-bottom: 20px;
+}
+
+.dk-form-row-single {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.dk-form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 200px;
+}
+
+.dk-label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.dk-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.dk-fat-snf-inputs {
+  display: flex;
+  align-items: center;
+}
+
+.dk-fat-snf-column {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dk-fat-snf-single {
+  width: 60px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.dk-fat-snf-label {
+  font-weight: bold;
+}
+
+.dk-table-wrapper {
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dk-row-table {
+  display: flex;
+}
+
+.dk-cell-small {
+  flex: 1;
+  padding: 10px;
+  background-color: #f8f9fa;
+  font-weight: bold;
+  border-right: 1px solid #ddd;
+}
+
+.dk-cell-large {
+  flex: 3;
+  padding: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+  
+  .sidebar-menu {
+    display: flex;
+    overflow-x: auto;
+  }
+  
+  .menu-item {
+    white-space: nowrap;
+  }
+  
+  .dk-form-row-single {
+    flex-direction: column;
+  }
+  
+  .dk-form-group {
+    min-width: 100%;
+  }
+}
+.dk-header-row {
+  display: flex;
+  justify-content: flex-end; /* move to right */
+  margin-top: 10px;
+  margin-right: 20px;
+}
+
+.inline-right-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;                   /* spacing between elements */
+  background-color: #e3f2fd;   /* faint sky blue */
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  width: fit-content;
+}
+
+.dk-header-label {
+  font-weight: 500;
+  white-space: nowrap;
+  color: #0d47a1; /* deep blue text for contrast */
+}
+
+.dk-header-input {
+  width: 80px;
+  height: 28px;
+  font-size: 13px;
+  padding: 3px 6px;
+  border: 1px solid #90caf9; /* soft blue border */
+  border-radius: 6px;
+  background-color: #ffffff;
+}
+
+.dk-btn-save {
+  background-color: #0d47a1; /* dark blue */
+  color: white;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dk-btn-save:hover {
+  background-color: #1565c0; /* slightly lighter blue on hover */
+}
+
+.dk-btn-new {
+  background-color: #2e7d32; /* green */
+  color: white;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dk-btn-new:hover {
+  background-color: #388e3c; /* brighter green on hover */
+}

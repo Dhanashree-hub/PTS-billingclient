@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import MemberForm from "./MemberForm";
 import SanghMaster from "./SanghMaster";
+import DarpatrakKendraPage from "./DarpatrakKendraPage";
+import VahtukPage from "./VahtukPage";
+import BankMasterPage from "./BankMasterPage";
 
 const DairyOverview: React.FC = () => {
-  const [activePage, setActivePage] = useState<"home" | "member" | "sangh">("home");
+  const [activePage, setActivePage] = useState<"home" | "member" | "sangh" | "darpatrakKendra" | "vahtuk" | "bankMaster">("home");
 
   // Conditional Rendering for pages
   if (activePage === "member") {
@@ -14,15 +17,27 @@ const DairyOverview: React.FC = () => {
     return <SanghMaster onBack={() => setActivePage("home")} />;
   }
 
+  if (activePage === "darpatrakKendra") {
+    return <DarpatrakKendraPage goBack={() => setActivePage("home")} />;
+  }
+
+  if (activePage === "vahtuk") {
+    return <VahtukPage goBack={() => setActivePage("home")} />;
+  }
+
+  if (activePage === "bankMaster") {
+    return <BankMasterPage goBack={() => setActivePage("home")} />;
+  }
+
   const masterItems = [
     { label: "सभासद मास्टर", emoji: "👨‍🌾", onClick: () => setActivePage("member") },
     { label: "संघ मास्टर", emoji: "🏡", onClick: () => setActivePage("sangh") },
     { label: "नियमित ग्राहक", emoji: "🥛" },
     { label: "खाद्य डीलर", emoji: "🌾" },
     { label: "दरपत्रक (संघ)", emoji: "📄" },
-    { label: "दरपत्रक (केंद्र)", emoji: "📄" },
-    { label: "वाहतूक / कपात सेटिंग", emoji: "⚙️" },
-    { label: "बँक मास्टर", emoji: "🏦" },
+    { label: "दरपत्रक (केंद्र)", emoji: "📄", onClick: () => setActivePage("darpatrakKendra") },
+    { label: "वाहतूक / कपात सेटिंग", emoji: "⚙️", onClick: () => setActivePage("vahtuk") },
+    { label: "बँक मास्टर", emoji: "🏦", onClick: () => setActivePage("bankMaster") },
   ];
 
   const infoItems = [
