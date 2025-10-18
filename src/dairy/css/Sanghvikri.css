@@ -1,0 +1,151 @@
+.sanghvikri-container {
+  padding: 25px;
+  background: #fff;
+  font-family: "Noto Sans Devanagari", sans-serif;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.header h2 {
+  font-size: 22px;
+  color: #222;
+}
+
+.back-btn {
+  background: #f0ad4e;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* -------- FORM LAYOUT -------- */
+
+.form-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #f9f9f9;
+  margin-bottom: 15px;
+}
+
+/* First row grid */
+.first-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+/* Scrollable second row container */
+.scroll-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+/* Second row */
+.second-row {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding-bottom: 5px;
+  min-width: max-content;
+}
+
+/* Form items */
+.form-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-item label {
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.form-item input,
+.form-item select {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 4px 5px;
+  font-size: 12px;
+  width: 110px;
+}
+
+.form-item.small input {
+  width: 85px;
+}
+
+/* Divider */
+.divider {
+  font-weight: bold;
+  font-size: 16px;
+  color: #666;
+  padding: 0 5px;
+}
+
+/* Save Button */
+.save-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  align-self: center;
+  height: 32px;
+}
+
+.save-btn:hover {
+  background: #218838;
+}
+
+/* -------- TABLE -------- */
+.table-container {
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 6px 5px;
+  font-size: 13px;
+}
+
+th {
+  background-color: #ff8c00;
+  color: white;
+  font-weight: 600;
+}
+
+td {
+  color: #444;
+}

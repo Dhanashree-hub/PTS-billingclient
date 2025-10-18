@@ -4,30 +4,21 @@ import SanghMaster from "./SanghMaster";
 import DarpatrakKendraPage from "./DarpatrakKendraPage";
 import VahtukPage from "./VahtukPage";
 import BankMasterPage from "./BankMasterPage";
+import cowGif from "../assets/cow1.gif"; // ✅ Proper import for your cow image
 
 const DairyOverview: React.FC = () => {
-  const [activePage, setActivePage] = useState<"home" | "member" | "sangh" | "darpatrakKendra" | "vahtuk" | "bankMaster">("home");
+  const [activePage, setActivePage] = useState<
+    "home" | "member" | "sangh" | "darpatrakKendra" | "vahtuk" | "bankMaster"
+  >("home");
 
-  // Conditional Rendering for pages
-  if (activePage === "member") {
-    return <MemberForm onBack={() => setActivePage("home")} />;
-  }
-
-  if (activePage === "sangh") {
-    return <SanghMaster onBack={() => setActivePage("home")} />;
-  }
-
-  if (activePage === "darpatrakKendra") {
+  // ✅ Page navigation
+  if (activePage === "member") return <MemberForm onBack={() => setActivePage("home")} />;
+  if (activePage === "sangh") return <SanghMaster onBack={() => setActivePage("home")} />;
+  if (activePage === "darpatrakKendra")
     return <DarpatrakKendraPage goBack={() => setActivePage("home")} />;
-  }
-
-  if (activePage === "vahtuk") {
-    return <VahtukPage goBack={() => setActivePage("home")} />;
-  }
-
-  if (activePage === "bankMaster") {
+  if (activePage === "vahtuk") return <VahtukPage goBack={() => setActivePage("home")} />;
+  if (activePage === "bankMaster")
     return <BankMasterPage goBack={() => setActivePage("home")} />;
-  }
 
   const masterItems = [
     { label: "सभासद मास्टर", emoji: "👨‍🌾", onClick: () => setActivePage("member") },
@@ -55,7 +46,7 @@ const DairyOverview: React.FC = () => {
           margin: 0;
           padding: 0;
           background: linear-gradient(135deg, #c8f7dc, #a5d8ff);
-          overflow: hidden;
+          overflow-x: hidden;
           height: 100vh;
         }
 
@@ -90,13 +81,15 @@ const DairyOverview: React.FC = () => {
           margin-top: 20px;
           font-size: 22px;
           color: #333;
+          text-align: left;
         }
 
         .icon-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          display: flex;
+          flex-wrap: wrap;
           gap: 18px;
           margin: 20px 0;
+          justify-content: flex-start;
         }
 
         .icon-card {
@@ -104,6 +97,8 @@ const DairyOverview: React.FC = () => {
           border-radius: 8px;
           padding: 10px;
           text-align: center;
+          width: 100px;
+          height: 100px;
           box-shadow: 0 2px 5px rgba(0,0,0,0.1);
           cursor: pointer;
           transition: transform 0.2s ease, background 0.3s ease;
@@ -130,37 +125,39 @@ const DairyOverview: React.FC = () => {
           border-radius: 8px;
           box-shadow: 0 3px 8px rgba(0,0,0,0.1);
           padding: 15px 20px;
-          margin: 25px auto 0;
-          max-width: 650px;
+          margin-top: 15px;
+          max-width: 700px;
           text-align: left;
           color: #444;
         }
 
         .info-card p {
           margin: 8px 0;
-          line-height: 1.5;
+          line-height: 1.6;
           font-size: 15px;
         }
 
         .cow-image {
           position: absolute;
-          bottom: 2;
-          right: 10px;
-          width: 450px;
+          bottom: 0;
+          right: 40px;
+          width: 480px;
           height: auto;
           background: transparent;
-          mix-blend-mode: multiply;
-          pointer-events: none;
-          
+          animation: moveCow 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes moveCow {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-25px); }
         }
 
         @media (max-width: 768px) {
-          .info-card {
-            max-width: 90%;
-            padding: 12px 16px;
+          .icon-grid {
+            justify-content: center;
           }
           .cow-image {
-            width: 280px;
+            width: 250px;
             bottom: 10px;
             right: 10px;
           }
@@ -178,11 +175,7 @@ const DairyOverview: React.FC = () => {
 
         <div className="icon-grid">
           {masterItems.map((item, index) => (
-            <div
-              key={index}
-              className="icon-card"
-              onClick={item.onClick}
-            >
+            <div key={index} className="icon-card" onClick={item.onClick}>
               <div className="icon-emoji">{item.emoji}</div>
               <div className="icon-label">{item.label}</div>
             </div>
@@ -195,7 +188,8 @@ const DairyOverview: React.FC = () => {
           ))}
         </div>
 
-        <img src="./src/assets/cow.jpeg" alt="Cow" className="cow-image" />
+        {/* 🐄 Cow GIF at bottom-right */}
+        <img src={cowGif} alt="Cow" className="cow-image" />
       </div>
     </>
   );

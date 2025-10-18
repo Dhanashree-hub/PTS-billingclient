@@ -1,0 +1,111 @@
+.sabhasad-container {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Noto Sans Devanagari", sans-serif;
+}
+
+/* HEADER ROW */
+.sabhasad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.sabhasad-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.sabhasad-right {
+  display: flex;
+  align-items: center;
+}
+
+.sabhasad-left label {
+  font-weight: bold;
+  color: #444;
+}
+
+.sabhasad-left input {
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.sabhasad-left span {
+  margin: 0 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+/* BUTTONS */
+.btn-blue {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-green {
+  background-color: #388e3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-orange {
+  background-color: #f57c00;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-blue:hover,
+.btn-green:hover,
+.btn-orange:hover {
+  opacity: 0.9;
+}
+
+/* TABLE */
+.sabhasad-table-container {
+  overflow-x: auto;
+}
+
+.sabhasad-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 14px;
+}
+
+.sabhasad-table th {
+  background-color: #f5e1ff;
+  color: #333;
+  padding: 8px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.sabhasad-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  color: #555;
+}
+
+.sabhasad-table tr:nth-child(even) {
+  background-color: #fafafa;
+}

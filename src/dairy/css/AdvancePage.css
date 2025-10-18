@@ -1,0 +1,141 @@
+.advance-container {
+  max-width: 950px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-section h2 {
+  margin: 0;
+  color: #333;
+}
+
+.icon {
+  font-size: 20px;
+}
+
+.btn-back {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.btn-back:hover {
+  background-color: #e68a00;
+}
+
+.card {
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  background: #fafafa;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #222;
+}
+
+.field input,
+.field select {
+  padding: 6px 8px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  width: 160px;
+}
+
+.remark-field input {
+  width: 240px;
+}
+
+/* Buttons */
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-blue {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.btn-blue:hover {
+  background-color: #0056b3;
+}
+
+/* Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.data-table th {
+  background-color: #ffa726; /* orange */
+  color: black;
+  font-weight: 600;
+}
+
+.btn-action {
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-action.delete {
+  background-color: #dc3545;
+}
+
+.btn-action.delete:hover {
+  background-color: #b21f2d;
+}

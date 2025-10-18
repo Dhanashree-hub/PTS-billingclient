@@ -5,12 +5,13 @@ import {
   Calculator,
   History,
   Settings,
-  BarChart3,
   Users,
   LogOut,
   Home,
-  FileText,
   HelpCircle,
+  FileText,
+  ClipboardCheck, // ✅ For Auditing
+  BarChart3, // ✅ For Reports
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,9 @@ import RateCalculator from "../dairy/RateCalculator";
 import CollectionHistory from "../dairy/CollectionHistory";
 import FarmersManagement from "../dairy/FarmersManagement";
 import DairySettings from "../dairy/DairySettings";
+import ItarVoucher from "../dairy/ItarVoucher"; // ✅ New page
+import AuditingVibhag from "../dairy/AuditingVibhag"; // ✅ New page (create this)
+import ReportsPage from "../dairy/ReportsPage"; // ✅ New page (create this)
 
 const DairyDashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -39,9 +43,13 @@ const DairyDashboard: React.FC = () => {
     }
   };
 
+  // ✅ Updated Menu Items
   const menuItems = [
     { id: "overview", label: "मास्टर माहिती", icon: Home },
     { id: "milk-collection", label: "दैनंदिन व्यवहार", icon: Milk },
+    { id: "itar-voucher", label: "इतर व्हाउचर", icon: FileText },
+    { id: "auditing-vibhag", label: "ऑडिटिंग विभाग", icon: ClipboardCheck }, // ✅ new
+    { id: "reports", label: "रिपोर्ट्स", icon: BarChart3 }, // ✅ new
     { id: "calculations", label: "दरपत्रक", icon: Calculator },
     { id: "history", label: "इतिहास", icon: History },
     { id: "farmers", label: "सदस्य व्यवस्थापन", icon: Users },
@@ -49,12 +57,19 @@ const DairyDashboard: React.FC = () => {
     { id: "help", label: "मदत", icon: HelpCircle },
   ];
 
+  // ✅ Updated Page Rendering
   const renderActivePage = () => {
     switch (activePage) {
       case "overview":
         return <DairyOverview />;
       case "milk-collection":
         return <MilkCollection />;
+      case "itar-voucher":
+        return <ItarVoucher />;
+      case "auditing-vibhag":
+        return <AuditingVibhag />; // ✅ New Page
+      case "reports":
+        return <ReportsPage />; // ✅ New Page
       case "calculations":
         return <RateCalculator />;
       case "history":
@@ -75,7 +90,9 @@ const DairyDashboard: React.FC = () => {
         {/* Logo Header */}
         <div className="p-6 border-b border-white/20 flex items-center justify-center">
           <div className="bg-white rounded-lg px-3 py-1 shadow-sm">
-            <h1 className="text-blue-600 font-bold text-xl tracking-wide">iDAIRY</h1>
+            <h1 className="text-blue-600 font-bold text-xl tracking-wide">
+              iDAIRY
+            </h1>
           </div>
         </div>
 
@@ -132,18 +149,6 @@ const DairyDashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Top Header */}
-        {/* <div className="flex justify-between items-center bg-blue-50 border-b px-6 py-3 shadow-sm">
-          <div className="flex items-center gap-2 text-lg font-semibold text-gray-700">
-            <span className="text-yellow-600 text-xl">📁</span>
-            <span>.सांगलीवाडी</span>
-          </div>
-          <Button className="bg-yellow-500 hover:bg-yellow-600 text-white">
-            नवीन नोंदणी
-          </Button>
-        </div> */}
-
-        {/* Page Content */}
         <div className="p-8">{renderActivePage()}</div>
       </div>
     </div>
